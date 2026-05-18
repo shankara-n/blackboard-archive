@@ -4,6 +4,52 @@
 > shutdown. Works on any Blackboard Learn instance whose course shells render in
 > Original view (most US universities), even when wrapped in the Ultra chrome.
 
+---
+
+## 🤖 Not technical? Ask your AI to run it for you.
+
+Open Claude, ChatGPT (with code execution / desktop terminal access), Cursor,
+Copilot, or any AI assistant that can run commands on your computer, and paste:
+
+> Clone `https://github.com/shankara-n/blackboard-archive` into my home folder
+> and follow `AGENTS.md` to set it up and run it. I'll sign in to Blackboard
+> when a Chromium window pops up.
+
+The repo includes an [`AGENTS.md`](AGENTS.md) with explicit step-by-step
+instructions for AI assistants, and a [`setup.sh`](setup.sh) that handles
+everything in one command.
+
+When a Chromium window pops up: that's the script's own browser ("Chrome for
+Testing" — different icon from your regular Chrome). Sign in to your Blackboard
+there, then leave the window open. Done.
+
+---
+
+## 🧑‍💻 Manual quick start (macOS / Linux)
+
+```bash
+git clone https://github.com/shankara-n/blackboard-archive.git
+cd blackboard-archive
+bash setup.sh
+```
+
+Sign in when the Chromium window appears, wait ~5–30 min, find your courses in `./out/`.
+
+## 🪟 Windows quick start
+
+```powershell
+git clone https://github.com/shankara-n/blackboard-archive.git
+cd blackboard-archive
+python -m venv .venv
+.venv\Scripts\pip install playwright beautifulsoup4 requests
+.venv\Scripts\playwright install chromium
+.venv\Scripts\python nec_archive.py
+```
+
+If `python` isn't installed: get it from <https://python.org/downloads/> and check the **"Add Python to PATH"** box during install.
+
+---
+
 Scrapes everything reachable to a logged-in student from a Blackboard Original-view course shell, including:
 
 - Course content tree (folders, items, attachments, original filenames)
@@ -18,7 +64,7 @@ What it does **not** get:
 - Recorded lectures / videos embedded via third-party tools (Panopto, Echo360, Kaltura)
 - Anything that requires Ultra-mode rendering (most institutions use Original view inside an Ultra frame; that's what this scrapes)
 
-## Setup
+## Advanced — manual install + env knobs
 
 Requires Python 3.10+.
 
@@ -27,8 +73,6 @@ python3 -m venv .venv
 .venv/bin/pip install playwright beautifulsoup4 requests
 .venv/bin/playwright install chromium
 ```
-
-## Run
 
 ```bash
 # Default: blackboard.nec.edu
