@@ -1,0 +1,15 @@
+# Playwright browser profile — holds your auth cookies, NEVER commit
+.pw_profile/
+
+# Python venv
+.venv/
+__pycache__/
+*.pyc
+
+# Scraper output (your actual course data)
+out/
+bigfiles/
+
+# Logs / scratch
+*.log
+urls.txt
