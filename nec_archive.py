@@ -49,10 +49,18 @@ VERBOSE = os.environ.get("NEC_VERBOSE") == "1"
 SAFE_NAME = re.compile(r"[^A-Za-z0-9._\- ]+")
 
 
-def safe(name: str, maxlen: int = 120) -> str:
-    name = SAFE_NAME.sub("_", name).strip().strip(".")
-    return (name or "untitled")[:maxlen]
-
+def safe(name: str, maxlen: int = 35) -> str:
+    # 1. Replace illegal characters with underscores
+    name = SAFE_NAME.sub("_", name)
+    
+    # 2. Slice down to maximum length first
+    name = name[:maxlen]
+    
+    # 3. CRITICAL: Strip spaces and dots AFTER slicing so 
+    # Windows doesn't reject trailing spaces in folder names
+    name = name.strip().strip(".")
+    
+    return name or "untitled"
 
 def log(msg: str) -> None:
     print(msg, flush=True)
@@ -163,7 +171,6 @@ def fetch_text(api: APIRequestContext, url: str) -> tuple[int, str, dict]:
     except Exception as e:  # noqa: BLE001
         vlog(f"fetch_text error {url}: {e}")
         return 0, "", {}
-
 
 def save(path: Path, content: bytes | str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -575,19 +582,28 @@ def archive_course(api: APIRequestContext, course: Course) -> dict:
     summary["menu_entries"] = len(menu)
 
     # Announcements
-    n = fetch_announcements(api, course, course.out_dir)
-    log(f"  announcements: {n}")
-    summary["announcements"] = n
+    try:
+        n = fetch_announcements(api, course, course.out_dir)
+        log(f"  announcements: {n}")
+        summary["announcements"] = n
+    except Exception as e:
+        log(f"  !! error fetching announcements: {e}")
 
-    # Grades
-    got = fetch_grades(api, course, course.out_dir)
-    log(f"  grades: {'saved' if got else 'not found'}")
-    summary["grades"] = bool(got)
+    # Grades & Submissions
+    try:
+        got = fetch_grades(api, course, course.out_dir)
+        log(f"  grades: {'saved' if got else 'not found'}")
+        summary["grades"] = bool(got)
+    except Exception as e:
+        log(f"  !! error fetching grades/submissions: {e}")
 
-    # Discussions
-    nf = fetch_discussions(api, course, course.out_dir)
-    log(f"  discussion forums: {nf}")
-    summary["discussion_forums"] = nf
+    # Discussions (Isolated so a submission crash won't block it)
+    try:
+        nf = fetch_discussions(api, course, course.out_dir)
+        log(f"  discussion forums: {nf}")
+        summary["discussion_forums"] = nf
+    except Exception as e:
+        log(f"  !! error fetching discussions: {e}")
 
     # Content areas from menu
     total_folders = 0
@@ -602,9 +618,13 @@ def archive_course(api: APIRequestContext, course: Course) -> dict:
         section_title = safe(entry["title"]) or "content"
         section_dir = course.out_dir / section_title
         log(f"  → {entry['title']}")
-        f1, f2 = walk_content(api, course, href, section_dir, [section_title], seen)
-        total_folders += f1
-        total_files += f2
+        try:
+            f1, f2 = walk_content(api, course, href, section_dir, [section_title], seen)
+            total_folders += f1
+            total_files += f2
+        except Exception as e:
+            log(f"  !! error walking content area {entry['title']}: {e}")
+
     log(f"  content: {total_folders} folders, {total_files} files")
     summary["folders"] = total_folders
     summary["files"] = total_files
