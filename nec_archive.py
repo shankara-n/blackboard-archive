@@ -39,7 +39,8 @@ from playwright.sync_api import (
 
 BASE = os.environ.get("BB_BASE", "https://blackboard.nec.edu").rstrip("/")
 ROOT = Path(__file__).resolve().parent
-OUT = ROOT / "out"
+OUT = Path(os.environ.get("BB_OUT", str(ROOT / "out"))).resolve()
+PROFILE_DIR = Path(os.environ.get("BB_PROFILE", str(ROOT / ".pw_profile"))).resolve()
 STATE = ROOT / "nec_state.json"
 DRY = os.environ.get("NEC_DRY_RUN") == "1"
 HEADLESS = os.environ.get("NEC_HEADLESS") == "1"
@@ -636,7 +637,7 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
         ctx = p.chromium.launch_persistent_context(
-            user_data_dir=str(ROOT / ".pw_profile"),
+            user_data_dir=str(PROFILE_DIR),
             headless=HEADLESS,
             accept_downloads=True,
             viewport={"width": 1280, "height": 900},

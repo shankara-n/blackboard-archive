@@ -89,6 +89,9 @@ NEC_COURSES=_12345_1,_67890_1 .venv/bin/python nec_archive.py
 
 # Verbose progress logging
 NEC_VERBOSE=1 .venv/bin/python nec_archive.py
+
+# Help a friend without trampling your own session — use isolated profile + output
+BB_PROFILE=.pw_profile_friend BB_OUT=out_friend .venv/bin/python nec_archive.py
 ```
 
 First run: a Chromium window opens. Sign in via your school's SSO (Microsoft/Google/etc. + MFA). The script polls every 3 s and auto-continues when it sees a valid session. The session is saved to `.pw_profile/` so subsequent runs skip login.
